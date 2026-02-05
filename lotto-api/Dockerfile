@@ -14,8 +14,9 @@ COPY target/lotto-api-*.jar app.jar
 EXPOSE 8080
 
 # 헬스 체크
+# NOTE: server.servlet.context-path=/lotto 이므로 actuator 경로도 /lotto 아래에 있음
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/lotto/actuator/health || exit 1
 
 # 애플리케이션 실행
 ENTRYPOINT ["java", "-jar", "app.jar"]
