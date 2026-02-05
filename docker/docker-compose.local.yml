@@ -1,0 +1,63 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: lotto-postgres-local
+    restart: unless-stopped
+    ports:
+      - "5434:5432"  # 5432는 dadp-hub-postgres가 사용 중이므로 5434로 변경
+    environment:
+      POSTGRES_DB: lottoguide
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - lotto_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d lottoguide"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lotto-network
+
+  lotto-api:
+    build:
+      context: ../lotto-api
+      dockerfile: Dockerfile
+    container_name: lotto-api-local
+    ports:
+      - "8083:8080"  # 8080-8082는 다른 서비스가 사용 중이므로 8083로 변경
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SERVER_PORT=8080
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=lottoguide
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/lottoguide
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - lotto-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  lotto_postgres_data:
+
+networks:
+  lotto-network:
+    driver: bridge

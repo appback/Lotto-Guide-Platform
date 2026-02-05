@@ -1,0 +1,297 @@
+{
+  "development_environment": {
+    "terminal": {
+      "type": "PowerShell",
+      "working_directory": "C:/Projects/Lotto-Guide-Platform",
+      "status": "working"
+    },
+    "git": {
+      "path": "C:\\Program Files\\Git\\bin\\git.exe",
+      "status": "installed",
+      "version": "2.51.0.windows.1",
+      "command_prefix": "& \"C:\\Program Files\\Git\\bin\\git.exe\"",
+      "repository_url": "https://github.com/appback/Lotto-Guide-Platform.git",
+      "note": "PowerShell에서 Git 명령어 실행 시 전체 경로 사용"
+    },
+    "java": {
+      "version": "17",
+      "type": "OpenJDK",
+      "path": "C:\\Program Files\\JetBrains\\IntelliJ IDEA 2025.1.3\\jbr\\bin",
+      "status": "installed",
+      "test_command": "java -version"
+    },
+    "maven": {
+      "version": "3.9.9",
+      "path": "C:\\Program Files\\JetBrains\\IntelliJ IDEA 2025.1.3\\plugins\\maven\\lib\\maven3",
+      "status": "installed",
+      "test_command": "mvn -version"
+    },
+    "nodejs": {
+      "status": "not_installed",
+      "install_url": "https://nodejs.org/",
+      "test_command": "node --version"
+    }
+  },
+  "project_info": {
+    "name": "Lotto Guide Platform",
+    "group_id": "io.appback",
+    "artifact_id": "lotto-api",
+    "version": "1.0.0-SNAPSHOT",
+    "spring_boot_version": "3.3.5",
+    "java_version": "17",
+    "database": {
+      "primary": "PostgreSQL",
+      "secondary": "MySQL",
+      "default_port": 5432
+    },
+    "architecture": {
+      "pattern": "Clean Architecture",
+      "layers": [
+        "api - REST API 레이어",
+        "application - UseCase 및 Port",
+        "domain - 도메인 모델 및 비즈니스 로직",
+        "infra - 인프라스트럭처 (Persistence, LLM, Scheduler, Security)",
+        "config - 설정 클래스"
+      ]
+    }
+  },
+  "path_setup": {
+    "commands": [
+      "export PATH=\"/c/Program Files/JetBrains/IntelliJ IDEA 2025.1.3/jbr/bin:$PATH\"",
+      "export PATH=\"/c/Program Files/JetBrains/IntelliJ IDEA 2025.1.3/plugins/maven/lib/maven3/bin:$PATH\""
+    ]
+  },
+  "ai_guidelines": {
+    "core_policies": {
+      "logging_level_standards": {
+        "policy": "로그 레벨 기준은 반드시 참조 문서를 확인해야 함. 인증 실패(401, 403), 토큰 만료는 정상적인 비즈니스 로직이므로 ERROR가 아닌 DEBUG/WARN으로 처리. ERROR는 예외처리되지 못한 예기치 못한 에러만 사용.",
+        "mandatory_check": true
+      },
+      "prohibited_behaviors": {
+        "policy": "1. 예시 제공 금지(정책/구현 예시 외 불필요한 예시 작성 금지). 2. 불필요한 안내 및 일반적 추측, 보편적 검색 내용 안내 금지. 3. 사용자(나)에게 확인 요청, 진행 여부 질의, 추가 안내 요청 등 금지. 4. 모든 안내/보고/진단은 반드시 코드, 현상, 정책을 근거로 하여야 하며, AI가 주도적으로 판단·수정·테스트를 직접 수행해야 함. 5. 동일한 사항으로 동일한 지시를 반복하게 하지 말 것.",
+        "prohibition": "위 정책 위반 시, 즉시 정책에 따라 자동으로 갱신 및 수정할 것."
+      },
+      "coding_standards": {
+        "policy": "코드 작성 규약은 반드시 참조 문서를 확인해야 함. Clean Architecture 패턴을 준수하며, 레이어 간 의존성 규칙을 지켜야 함. 네이밍 규칙, 메서드 작성 규칙, 예외 처리, 로깅 표준 등 모든 코딩 표준은 참조 문서를 따라야 함.",
+        "references": [
+          "working/README.md",
+          "docs/docs_prototype_mvp_architecture_appback_v1.2.md"
+        ],
+        "mandatory_check": true
+      },
+      "architecture_compliance": {
+        "policy": "Clean Architecture 패턴을 엄격히 준수해야 함. domain 레이어는 다른 레이어에 의존하지 않아야 하며, application 레이어는 domain만 의존해야 함. infra 레이어는 application의 Port 인터페이스를 구현해야 함.",
+        "references": [
+          "working/README.md",
+          "working/01-project-setup.md"
+        ],
+        "mandatory_check": true
+      },
+      "powershell_bash_command_guide": {
+        "policy": "PowerShell 환경에서는 Bash/Linux 명령어를 절대 사용하지 않아야 함. 모든 명령어는 PowerShell 문법으로 작성해야 하며, Bash 명령어를 변환하는 것이 아니라 처음부터 PowerShell 명령어로 작성해야 함.",
+        "mandatory_check": true,
+        "prohibition": "PowerShell 환경에서 Bash 명령어(&&, export, cat, grep 등), Unix 스타일 경로(/path/to), Bash 스타일 환경 변수($VAR) 사용 금지. 모든 명령어는 PowerShell cmdlet 및 문법을 사용해야 함."
+      },
+      "git_command_policy": {
+        "policy": "Git 명령어는 사용자의 명시적 지시가 있을 때만 실행. 자동으로 커밋/푸시하지 않음. 모든 Git 커밋 메시지는 반드시 영문(English)으로 작성해야 함.",
+        "mandatory_check": true,
+        "prohibition": "git add, git commit, git push 등 모든 Git 명령어를 사용자 요청 없이 자동 실행 금지. 스크립트 파일(.sh, .ps1, .bat 등) 생성 금지. 불필요한 임시 파일 생성 금지."
+      },
+      "application_properties_modification": {
+        "policy": "application.yml 파일 수정 시 반드시 수정 이유 확인, 기존/변경 설정값 비교, 다른 서비스 영향도 검토, 수정 후 빌드/테스트로 정상 동작 확인을 수행해야 함.",
+        "prohibition": "명확한 이유 없이 application.yml 수정 금지, 수정 후 검증 없이 진행 금지"
+      },
+      "working_documents_management": {
+        "policy": "작업 중인 문서는 반드시 working/ 폴더에서 관리하며, 작업 완료 시 기존 문서에 편입 또는 병합하고 문서화해야 함.",
+        "references": [
+          "working/README.md"
+        ],
+        "prohibition": "working 폴더 외부에 작업 중인 문서 생성 금지, 작업 완료 후 working 폴더에서 제거 또는 정리 필수"
+      },
+      "code_validation": {
+        "policy": "코드 수정 시 즉시 표준 명령으로 빌드. 백엔드 빌드는 반드시 프로젝트 루트에서 실행해야 함.",
+        "mandatory_check": true
+      },
+      "execution_location_policy": {
+        "policy": "모든 빌드/배포/테스트 명령은 반드시 프로젝트 루트(C:/Projects/Lotto-Guide-Platform)에서만 실행해야 하며, 절대로 하위 폴더에서 직접 mvn package 등 수동 명령을 실행하지 말 것.",
+        "mandatory_check": true,
+        "prohibition": "프로젝트 루트 이외의 위치에서 직접 빌드/배포/테스트 명령 실행 금지."
+      },
+      "document_hierarchy": {
+        "policy": "문서 계층 구조는 참조 문서를 확인해야 함. AI는 작업 시작 시 document_hierarchy를 참조하여 관련 문서를 찾아야 함.",
+        "references": [
+          "working/README.md",
+          "docs/docs_prototype_mvp_architecture_appback_v1.2.md"
+        ]
+      },
+      "document_search_guide": {
+        "policy": "모든 정책/가이드/구현/예시는 반드시 문서 계층 구조에 따라 작성/정비/참조해야 함. 상위 정책 내용이 하위에 중복되면 안 되고, 하위는 상위/중위 문서를 참조만 해야 함.",
+        "references": [
+          "working/README.md",
+          "docs/docs_prototype_mvp_architecture_appback_v1.2.md"
+        ]
+      },
+      "frontend_development": {
+        "policy": "프론트엔드는 dadp-hub의 client-frontend 방식을 따름. React + TypeScript + Vite + Ant Design 스택 사용. 모든 프론트엔드 빌드/실행 명령은 반드시 프로젝트 루트에서 'npm --prefix client-frontend' 방식으로 실행해야 함.",
+        "references": [
+          "docs/guidelines/frontend-guidelines.md"
+        ],
+        "mandatory_check": true,
+        "prohibition": "프론트엔드 폴더로 이동 후 직접 npm 명령 실행 금지. 프로젝트 루트 이외의 위치에서 프론트엔드 빌드/실행 명령 실행 금지.",
+        "technology_stack": {
+          "framework": "React 18.3+",
+          "language": "TypeScript 5.8+",
+          "build_tool": "Vite 6.3+",
+          "ui_library": "Ant Design 5.19+",
+          "state_management": "Zustand 5.0+",
+          "routing": "React Router 6.26+",
+          "http_client": "Axios 1.10+"
+        },
+        "project_structure": {
+          "frontend_directory": "client-frontend",
+          "reference": "dadp-hub/client-frontend 구조를 따름"
+        }
+      },
+      "frontend_build_failure_handling": {
+        "policy": "프론트엔드 빌드 실패 시, 반드시 'npm --prefix client-frontend' 방식으로 cd 이동 없이 실행할 것. cd로 이동 후 실행 금지.",
+        "references": [
+          "docs/guidelines/frontend-guidelines.md",
+          "docs/guidelines/build-management.md"
+        ]
+      },
+      "deployment_policy": {
+        "policy": "배포는 Docker를 사용하여 AWS EC2 인스턴스에 배포함. dadp 프로젝트의 배포 방식을 따름. SSH 접속은 금지하며, 반드시 AWS SSM 또는 CloudShell만 사용해야 함. 엔진2 AWS 인스턴스(i-039650bd0704f2e6f)에 배포하며, 프로세싱 파워 여유를 활용함.",
+        "references": [
+          "docs/guidelines/deployment-guidelines.md",
+          "docs/infrastructure/lotto-api-instance-info.md"
+        ],
+        "mandatory_check": true,
+        "prohibition": "SSH/키 기반 접속 금지. 운영/테스트 서버 접근은 AWS Systems Manager (SSM) 또는 AWS CloudShell만 사용.",
+        "deployment_method": {
+          "containerization": "Docker",
+          "cloud_provider": "AWS",
+          "compute": "EC2",
+          "database": "RDS PostgreSQL",
+          "remote_access": "SSM/CloudShell only",
+          "target_instance": "i-039650bd0704f2e6f (dadp-engine-2, 공유 인스턴스)"
+        }
+      },
+      "automation_scripts": {
+        "policy": "scripts/run-automation.py 사용 필수. 수동 빌드/서버 직접 실행 금지. 빌드/배포/테스트는 모두 자동화 스크립트로만 수행. 반드시 프로젝트 루트에서 실행해야 경로가 정상 동작함.",
+        "references": [
+          "docs/guidelines/automation-principles.md",
+          "docs/guidelines/build-management.md"
+        ],
+        "mandatory_check": true,
+        "prohibition": "프로젝트 루트 이외의 위치에서 직접 빌드/배포/테스트 명령 실행 금지. 자동화 스크립트 외 수동 빌드 금지.",
+        "usage": {
+          "local_deploy": "python scripts/run-automation.py --service lotto-api --local",
+          "aws_deploy": "python scripts/run-automation.py --service lotto-api --stage aws-deploy",
+          "build_only": "python scripts/run-automation.py --service lotto-api --stage build",
+          "docker_rebuild": "python scripts/run-automation.py --service lotto-api --stage docker-rebuild"
+        }
+      }
+    },
+    "workflow_policies": {
+      "pre_action_check": {
+        "policy": "작업 전 .ai-config.json 파일 읽기 의무. 실제 구현 내용과 불일치 시 즉시 갱신. 위 금지/의무 조항을 항상 우선 적용."
+      },
+      "reporting_format": {
+        "policy": "실제 구현 내용이 표준. 문서와 다를 경우 실제 구현에 맞게 문서 갱신."
+      }
+    }
+  },
+  "database_configuration": {
+    "policy": "데이터베이스 설정은 application.yml에서 관리. PostgreSQL을 기본으로 사용하며, MySQL도 지원. 개발 환경에서는 localhost:5432를 기본으로 사용.",
+    "default_config": {
+      "url": "jdbc:postgresql://localhost:5432/lottoguide",
+      "username": "postgres",
+      "password": "postgres",
+      "driver": "org.postgresql.Driver"
+    }
+  },
+  "api_conventions": {
+    "policy": "REST API는 /api/v1/ 접두사를 사용. 모든 API 응답은 표준 REST 형식을 따라야 함.",
+    "endpoints": {
+      "generate": "POST /api/v1/generate - 번호 생성",
+      "mission": "POST /api/v1/mission - 미션 생성",
+      "history": "GET /api/v1/history - 히스토리 조회 (Member only)"
+    }
+  },
+  "deployment_configuration": {
+    "policy": "배포는 Docker를 사용하며, AWS EC2 인스턴스에 배포함. 환경 변수는 SSM Parameter Store에서 관리하며, env-sync 스크립트를 통해 주입함. 엔진2 AWS 인스턴스(dadp-engine-2)에 배포하며, 프로세싱 파워 여유를 활용함.",
+    "docker": {
+      "base_image": "eclipse-temurin:17-jdk-alpine",
+      "healthcheck": "/actuator/health",
+      "port": 8080
+    },
+    "aws": {
+      "compute": "EC2",
+      "database": "RDS PostgreSQL",
+      "remote_access": "SSM/CloudShell only",
+      "ssm_parameter_prefix": "/lotto/api",
+      "region": "ap-northeast-2",
+      "account_id": "834873515944"
+    },
+    "environment_management": {
+      "method": "SSM Parameter Store",
+      "sync_script": "/usr/local/bin/lotto-api-env-sync.sh",
+      "env_file": "/etc/lotto-api.env"
+    },
+    "infrastructure_info": {
+      "note": "실제 운영 환경 정보는 참조 문서 또는 별도 설정 파일 참조",
+      "instance": {
+        "instance_id": "i-039650bd0704f2e6f",
+        "instance_name": "dadp-engine-2",
+        "shared_instance": true,
+        "purpose": "lotto-api-deployment",
+        "processing_power": "여유 있음",
+        "public_dns": "ec2-15-164-228-217.ap-northeast-2.compute.amazonaws.com",
+        "public_ip": "15.164.228.217",
+        "private_ip": "172.31.26.161",
+        "instance_type": "t2.medium",
+        "vpc_id": "vpc-f8168890",
+        "subnet_id": "subnet-74f72e38",
+        "security_group": "sg-095f85d6a1e86a41f",
+        "key_pair": "dadp-prod",
+        "user": "ec2-user",
+        "iam_role": "dadp-ec2-ssm-role",
+        "working_directory": "/opt/lotto/docker 또는 /home/ec2-user/docker"
+      },
+      "references": [
+        "docs/infrastructure/lotto-api-instance-info.md"
+      ]
+    }
+  },
+  "build_and_test": {
+    "automation_script": {
+      "policy": "모든 빌드/배포는 scripts/run-automation.py 스크립트를 사용해야 함. 수동 빌드/배포 금지.",
+      "script_path": "scripts/run-automation.py",
+      "mandatory_use": true
+    },
+    "backend": {
+      "policy": "백엔드 빌드는 Maven을 사용하며, 프로젝트 루트에서 실행해야 함. 테스트는 Spring Boot Test를 사용. 자동화 스크립트 사용 권장.",
+      "commands": {
+        "build": "mvn clean package",
+        "run": "mvn spring-boot:run",
+        "test": "mvn test",
+        "automation": "python scripts/run-automation.py --service lotto-api --stage build"
+      },
+      "profiles": {
+        "dev": "기본 프로파일, 개발 환경 설정",
+        "prod": "프로덕션 환경 설정"
+      }
+    },
+    "frontend": {
+      "policy": "프론트엔드 빌드는 npm을 사용하며, 반드시 프로젝트 루트에서 'npm --prefix client-frontend' 방식으로 실행해야 함.",
+      "commands": {
+        "dev": "npm --prefix client-frontend run dev",
+        "build": "npm --prefix client-frontend run build",
+        "lint": "npm --prefix client-frontend run lint",
+        "preview": "npm --prefix client-frontend run preview"
+      },
+      "prohibition": "client-frontend 폴더로 이동 후 직접 npm 명령 실행 금지"
+    }
+  },
+  "ai_notes": "이 파일을 먼저 확인한 후 도구 설치 상태를 판단하세요. Java 17과 Maven은 이미 설치되어 있습니다. 프로젝트는 Clean Architecture 패턴을 따르며, Spring Boot 3.3.5를 사용합니다. 프론트엔드는 dadp-hub의 client-frontend 방식을 따르며, React + TypeScript + Vite + Ant Design 스택을 사용합니다. 배포는 Docker를 사용하여 AWS EC2 인스턴스(i-039650bd0704f2e6f, dadp-engine-2)에 배포하며, 프로세싱 파워 여유를 활용합니다. 모든 빌드/배포는 scripts/run-automation.py 스크립트를 사용해야 하며, 로컬 배포는 'python scripts/run-automation.py --service lotto-api --local', AWS 배포는 'python scripts/run-automation.py --service lotto-api --stage aws-deploy'로 실행합니다. SSH 접속은 금지하고 SSM/CloudShell만 사용합니다. 작업 중인 문서는 working/ 폴더에서 관리합니다. 모든 빌드/테스트 명령은 프로젝트 루트에서만 실행해야 하며, 프론트엔드 빌드는 'npm --prefix client-frontend' 방식으로 실행해야 합니다. 코드 수정 시 즉시 빌드 검증을 수행해야 합니다."
+}

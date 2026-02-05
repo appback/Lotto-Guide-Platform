@@ -1,0 +1,130 @@
+/* 로또 볼 기본 스타일 */
+.lotto-ball {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: bold;
+  user-select: none;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.lotto-ball:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* 크기별 스타일 */
+.lotto-ball-small {
+  width: 39px;
+  height: 39px;
+  font-size: 16px;
+}
+
+.lotto-ball-medium {
+  width: 50px;
+  height: 50px;
+  font-size: 18px;
+}
+
+.lotto-ball-large {
+  width: 60px;
+  height: 60px;
+  font-size: 22px;
+}
+
+/* 색상별 스타일 */
+.lotto-ball.yellow {
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 50%, #ffd700 100%);
+  color: #333;
+  border: 2px solid #ffc107;
+}
+
+.lotto-ball.blue {
+  background: linear-gradient(135deg, #4a90e2 0%, #6bb3ff 50%, #4a90e2 100%);
+  color: #fff;
+  border: 2px solid #357abd;
+}
+
+.lotto-ball.red {
+  background: linear-gradient(135deg, #e74c3c 0%, #ff6b6b 50%, #e74c3c 100%);
+  color: #fff;
+  border: 2px solid #c0392b;
+}
+
+.lotto-ball.gray {
+  background: linear-gradient(135deg, #95a5a6 0%, #bdc3c7 50%, #95a5a6 100%);
+  color: #fff;
+  border: 2px solid #7f8c8d;
+}
+
+.lotto-ball.green {
+  background: linear-gradient(135deg, #27ae60 0%, #2ecc71 50%, #27ae60 100%);
+  color: #fff;
+  border: 2px solid #229954;
+}
+
+.lotto-ball.default {
+  background: linear-gradient(135deg, #ecf0f1 0%, #bdc3c7 50%, #ecf0f1 100%);
+  color: #333;
+  border: 2px solid #95a5a6;
+}
+
+/* 번호 텍스트 스타일 */
+.lotto-ball-number {
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* 볼 그룹 스타일 */
+.lotto-ball-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+/* 애니메이션 효과 */
+.lotto-ball-animated {
+  animation: ballPopIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+  opacity: 0;
+}
+
+@keyframes ballPopIn {
+  0% {
+    opacity: 0;
+    transform: scale(0) rotate(-180deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2) rotate(0deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .lotto-ball-small {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+
+  .lotto-ball-medium {
+    width: 45px;
+    height: 45px;
+    font-size: 16px;
+  }
+
+  .lotto-ball-large {
+    width: 55px;
+    height: 55px;
+    font-size: 20px;
+  }
+}
