@@ -8,6 +8,10 @@
 .DS_Store
 Thumbs.db
 
+# Build outputs
+lotto-api/target/
+scripts/*.jar
+
 # Python
 __pycache__/
 *.py[cod]
