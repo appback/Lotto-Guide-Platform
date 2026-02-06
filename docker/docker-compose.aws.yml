@@ -1,4 +1,6 @@
-version: '3.8'
+# AWS 배포용 Compose (비밀/민감값은 오버라이드에서 주입)
+# 실제 배포: docker-compose.aws.override.yml 에서 환경변수 오버라이드 후
+# docker-compose -f docker-compose.aws.yml -f docker-compose.aws.override.yml up -d
 
 services:
   postgres:
@@ -9,8 +11,8 @@ services:
       - "5432:5432"
     environment:
       POSTGRES_DB: lottoguide
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     volumes:
       - lotto_postgres_data:/var/lib/postgresql/data
       - ./init-scripts:/docker-entrypoint-initdb.d
@@ -31,23 +33,20 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - SERVER_PORT=8080
-      # 데이터베이스 설정 (postgres 서비스 사용)
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_NAME=lottoguide
-      - DB_USERNAME=postgres
-      - DB_PASSWORD=postgres
+      - DB_USERNAME=${DB_USERNAME:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/lottoguide
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME:-postgres}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-postgres}
       - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
-      # JPA 설정: update로 설정하여 테이블 자동 생성/업데이트
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
     depends_on:
       postgres:
         condition: service_healthy
     healthcheck:
-      # NOTE: server.servlet.context-path=/lotto
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/lotto/actuator/health"]
       interval: 30s
       timeout: 10s

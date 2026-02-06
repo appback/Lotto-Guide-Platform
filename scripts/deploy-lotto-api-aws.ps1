@@ -29,7 +29,7 @@ Write-Host "[INFO] Starting Lotto API deployment..." -ForegroundColor Green
 
 $ROOT_DIR = Split-Path -Parent $PSScriptRoot
 
-# JAR file search
+# JAR file: use lotto-api/target build output directly (no copy to scripts/)
 Write-Host "[STEP 1] Searching for JAR file..." -ForegroundColor Yellow
 $LOTTO_JAR = Get-ChildItem -Path "$ROOT_DIR\lotto-api\target" -Filter "lotto-api-*.jar" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
 
@@ -41,76 +41,77 @@ if ($null -eq $LOTTO_JAR -or -not (Test-Path $LOTTO_JAR.FullName)) {
 
 Write-Host "[SUCCESS] [STEP 1] JAR file found: $($LOTTO_JAR.Name)" -ForegroundColor Green
 
-# Prepare JAR file (temporary location)
-Write-Host "[STEP 2] Preparing JAR file..." -ForegroundColor Yellow
-$LOCAL_JAR = Join-Path $PSScriptRoot "lotto-api-latest.jar"
-Copy-Item $LOTTO_JAR.FullName -Destination $LOCAL_JAR -Force
-Write-Host "[SUCCESS] [STEP 2] JAR file prepared" -ForegroundColor Green
-
-# Create remote directory
-Write-Host "[STEP 3] Creating remote directory..." -ForegroundColor Yellow
-$cmdMkdir = "mkdir -p $REMOTE_PATH"
+# Create remote directory (including target for JAR)
+Write-Host "[STEP 2] Creating remote directory..." -ForegroundColor Yellow
+$cmdMkdir = "mkdir -p $REMOTE_PATH/target"
 & ssh -i $KEY_FILE_PATH "${INSTANCE_USER}@${INSTANCE_DNS}" $cmdMkdir
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "[WARNING] [STEP 3] Remote directory creation failed (continuing)" -ForegroundColor Yellow
+    Write-Host "[WARNING] [STEP 2] Remote directory creation failed (continuing)" -ForegroundColor Yellow
 } else {
-    Write-Host "[SUCCESS] [STEP 3] Remote directory created" -ForegroundColor Green
+    Write-Host "[SUCCESS] [STEP 2] Remote directory created" -ForegroundColor Green
 }
 
-# Copy JAR file to server
-Write-Host "[STEP 4] Copying JAR file to server..." -ForegroundColor Yellow
-& scp -i $KEY_FILE_PATH $LOCAL_JAR "${INSTANCE_USER}@${INSTANCE_DNS}:${REMOTE_PATH}/lotto-api-latest.jar"
+# Copy JAR from target directly to server target/ (no intermediate copy)
+Write-Host "[STEP 3] Copying JAR file to server..." -ForegroundColor Yellow
+& scp -i $KEY_FILE_PATH $LOTTO_JAR.FullName "${INSTANCE_USER}@${INSTANCE_DNS}:${REMOTE_PATH}/target/$($LOTTO_JAR.Name)"
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "[ERROR] [STEP 4] JAR file copy failed" -ForegroundColor Red
+    Write-Host "[ERROR] [STEP 3] JAR file copy failed" -ForegroundColor Red
     exit 1
 }
 
-Write-Host "[SUCCESS] [STEP 4] JAR file copied" -ForegroundColor Green
+Write-Host "[SUCCESS] [STEP 3] JAR file copied" -ForegroundColor Green
 
 # Copy Dockerfile
-Write-Host "[STEP 5] Copying Dockerfile..." -ForegroundColor Yellow
+Write-Host "[STEP 4] Copying Dockerfile..." -ForegroundColor Yellow
 $DOCKERFILE = Join-Path $ROOT_DIR "lotto-api\Dockerfile"
 
 if (-not (Test-Path $DOCKERFILE)) {
-    Write-Host "[ERROR] [STEP 5] Dockerfile not found: $DOCKERFILE" -ForegroundColor Red
+    Write-Host "[ERROR] [STEP 4] Dockerfile not found: $DOCKERFILE" -ForegroundColor Red
     exit 1
 }
 
 & scp -i $KEY_FILE_PATH $DOCKERFILE "${INSTANCE_USER}@${INSTANCE_DNS}:${REMOTE_PATH}/Dockerfile"
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "[ERROR] [STEP 5] Dockerfile copy failed" -ForegroundColor Red
+    Write-Host "[ERROR] [STEP 4] Dockerfile copy failed" -ForegroundColor Red
     exit 1
 }
 
-Write-Host "[SUCCESS] [STEP 5] Dockerfile copied" -ForegroundColor Green
+Write-Host "[SUCCESS] [STEP 4] Dockerfile copied" -ForegroundColor Green
 
-# Copy docker-compose file
-Write-Host "[STEP 6] Copying docker-compose file..." -ForegroundColor Yellow
+# Copy docker-compose base + override (override에 비밀값 포함)
+Write-Host "[STEP 5] Copying docker-compose files..." -ForegroundColor Yellow
 $COMPOSE_FILE = Join-Path $ROOT_DIR "docker\docker-compose.aws.yml"
+$COMPOSE_OVERRIDE = Join-Path $ROOT_DIR "docker\docker-compose.aws.override.yml"
 
 if (-not (Test-Path $COMPOSE_FILE)) {
-    Write-Host "[ERROR] [STEP 6] docker-compose file not found: $COMPOSE_FILE" -ForegroundColor Red
+    Write-Host "[ERROR] [STEP 5] docker-compose file not found: $COMPOSE_FILE" -ForegroundColor Red
     exit 1
 }
 
 & scp -i $KEY_FILE_PATH $COMPOSE_FILE "${INSTANCE_USER}@${INSTANCE_DNS}:${REMOTE_PATH}/docker-compose.aws.yml"
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "[ERROR] [STEP 6] docker-compose file copy failed" -ForegroundColor Red
+    Write-Host "[ERROR] [STEP 5] docker-compose file copy failed" -ForegroundColor Red
     exit 1
 }
 
-Write-Host "[SUCCESS] [STEP 6] docker-compose file copied" -ForegroundColor Green
+if (Test-Path $COMPOSE_OVERRIDE) {
+    & scp -i $KEY_FILE_PATH $COMPOSE_OVERRIDE "${INSTANCE_USER}@${INSTANCE_DNS}:${REMOTE_PATH}/docker-compose.aws.override.yml"
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[WARNING] [STEP 5] docker-compose override copy failed (continuing)" -ForegroundColor Yellow
+    }
+}
+Write-Host "[SUCCESS] [STEP 5] docker-compose files copied" -ForegroundColor Green
 
 # Copy initialization scripts
-Write-Host "[STEP 7] Copying initialization scripts..." -ForegroundColor Yellow
+Write-Host "[STEP 6] Copying initialization scripts..." -ForegroundColor Yellow
 $INIT_SCRIPTS_DIR = Join-Path $ROOT_DIR "docker\init-scripts"
 
 if (-not (Test-Path $INIT_SCRIPTS_DIR)) {
-    Write-Host "[WARNING] [STEP 7] Initialization scripts directory not found: $INIT_SCRIPTS_DIR" -ForegroundColor Yellow
+    Write-Host "[WARNING] [STEP 6] Initialization scripts directory not found: $INIT_SCRIPTS_DIR" -ForegroundColor Yellow
     Write-Host "  Skipping..." -ForegroundColor Gray
 } else {
     # Copy entire directory
@@ -120,26 +121,26 @@ if (-not (Test-Path $INIT_SCRIPTS_DIR)) {
     & scp -i $KEY_FILE_PATH -r "$INIT_SCRIPTS_DIR/*" "${INSTANCE_USER}@${INSTANCE_DNS}:${REMOTE_PATH}/init-scripts/"
     
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "[WARNING] [STEP 7] Initialization scripts copy failed (continuing)" -ForegroundColor Yellow
+        Write-Host "[WARNING] [STEP 6] Initialization scripts copy failed (continuing)" -ForegroundColor Yellow
     } else {
-        Write-Host "[SUCCESS] [STEP 7] Initialization scripts copied" -ForegroundColor Green
+        Write-Host "[SUCCESS] [STEP 6] Initialization scripts copied" -ForegroundColor Green
     }
 }
 
 # Check database table (optional)
-Write-Host "[STEP 8] Checking database table..." -ForegroundColor Yellow
+Write-Host "[STEP 7] Checking database table..." -ForegroundColor Yellow
 $sqlCheck = "docker exec lotto-postgres psql -U postgres -d lottoguide -c '\d mission_templates' 2>&1 | grep -q 'mission_templates' && echo 'EXISTS' || echo 'NOT_EXISTS'"
 $tableExists = & ssh -i $KEY_FILE_PATH "${INSTANCE_USER}@${INSTANCE_DNS}" "cd $REMOTE_PATH && $sqlCheck"
 
 if ($tableExists -notmatch "EXISTS") {
-    Write-Host "[WARNING] [STEP 8] mission_templates table not found." -ForegroundColor Yellow
+    Write-Host "[WARNING] [STEP 7] mission_templates table not found." -ForegroundColor Yellow
     Write-Host "  Table will be created automatically on first PostgreSQL container start." -ForegroundColor Gray
 } else {
-    Write-Host "[SUCCESS] [STEP 8] mission_templates table exists" -ForegroundColor Green
+    Write-Host "[SUCCESS] [STEP 7] mission_templates table exists" -ForegroundColor Green
 }
 
 # Restart Docker containers on server
-Write-Host "[STEP 9] Restarting Docker containers on server..." -ForegroundColor Yellow
+Write-Host "[STEP 8] Restarting Docker containers on server..." -ForegroundColor Yellow
 
 Write-Host "  Stopping and removing existing containers..." -ForegroundColor Gray
 $cmd1 = "docker stop lotto-api lotto-postgres || true"
@@ -147,29 +148,23 @@ $cmd1 = "docker stop lotto-api lotto-postgres || true"
 $cmd1b = "docker rm lotto-api lotto-postgres || true"
 & ssh -i $KEY_FILE_PATH "${INSTANCE_USER}@${INSTANCE_DNS}" $cmd1b
 
-Write-Host "  Moving JAR file to target directory..." -ForegroundColor Gray
-$cmdJar = "mkdir -p $REMOTE_PATH/target && cp $REMOTE_PATH/lotto-api-latest.jar $REMOTE_PATH/target/lotto-api-1.0.0-SNAPSHOT.jar"
-& ssh -i $KEY_FILE_PATH "${INSTANCE_USER}@${INSTANCE_DNS}" $cmdJar
-
-Write-Host "  Building Docker image..." -ForegroundColor Gray
+Write-Host "  Building Docker image (JAR already in target/)..." -ForegroundColor Gray
 $cmdBuild = "cd $REMOTE_PATH && docker build -t lotto-api:latest -f Dockerfile ."
 & ssh -i $KEY_FILE_PATH "${INSTANCE_USER}@${INSTANCE_DNS}" $cmdBuild
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "[ERROR] [STEP 9] Docker image build failed" -ForegroundColor Red
+    Write-Host "[ERROR] [STEP 8] Docker image build failed" -ForegroundColor Red
     exit 1
 }
 
-Write-Host "  Starting services with Docker Compose (postgres + lotto-api)..." -ForegroundColor Gray
-# --force-recreate: Recreate containers even if volumes changed to load new JAR file
-# postgres starts first, lotto-api starts automatically via depends_on
-# Use docker-compose (v1) - most EC2 instances have this
-$cmd2 = "cd $REMOTE_PATH && docker-compose -f docker-compose.aws.yml up -d --force-recreate"
+Write-Host "  Starting services with Docker Compose (base + override)..." -ForegroundColor Gray
+# Use override if present (real secrets); otherwise base only (defaults)
+$cmd2 = "cd $REMOTE_PATH && if [ -f docker-compose.aws.override.yml ]; then docker-compose -f docker-compose.aws.yml -f docker-compose.aws.override.yml up -d --force-recreate; else docker-compose -f docker-compose.aws.yml up -d --force-recreate; fi"
 & ssh -i $KEY_FILE_PATH "${INSTANCE_USER}@${INSTANCE_DNS}" $cmd2
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "[ERROR] [STEP 9] Docker Compose start failed" -ForegroundColor Red
-    Write-Host "  Check logs: ssh -i $KEY_FILE ${INSTANCE_USER}@${INSTANCE_DNS} 'cd $REMOTE_PATH && docker-compose -f docker-compose.aws.yml logs --tail=50 lotto-api'" -ForegroundColor Yellow
+    Write-Host "[ERROR] [STEP 8] Docker Compose start failed" -ForegroundColor Red
+    Write-Host "  Check logs: ssh -i $KEY_FILE ${INSTANCE_USER}@${INSTANCE_DNS} 'cd $REMOTE_PATH && docker-compose -f docker-compose.aws.yml -f docker-compose.aws.override.yml logs --tail=50 lotto-api'" -ForegroundColor Yellow
     exit 1
 }
 
@@ -177,7 +172,7 @@ Write-Host "[INFO] Waiting for health check (30 seconds)..." -ForegroundColor Ye
 Start-Sleep -Seconds 30
 
 Write-Host "[INFO] Checking Lotto API logs..." -ForegroundColor Gray
-$cmd3 = "cd $REMOTE_PATH && docker-compose -f docker-compose.aws.yml logs --tail 50 lotto-api"
+$cmd3 = "cd $REMOTE_PATH && (test -f docker-compose.aws.override.yml && docker-compose -f docker-compose.aws.yml -f docker-compose.aws.override.yml logs --tail 50 lotto-api || docker-compose -f docker-compose.aws.yml logs --tail 50 lotto-api)"
 & ssh -i $KEY_FILE_PATH "${INSTANCE_USER}@${INSTANCE_DNS}" $cmd3
 
 Write-Host "[INFO] Checking health endpoint..." -ForegroundColor Gray
@@ -198,7 +193,8 @@ Write-Host "  - API: http://$INSTANCE_IP:8083/lotto/api/v1" -ForegroundColor Whi
 Write-Host "  - Frontend: http://$INSTANCE_IP:8083/lotto/" -ForegroundColor White
 Write-Host "  - Health: http://$INSTANCE_IP:8083/lotto/actuator/health" -ForegroundColor White
 Write-Host ""
+Write-Host "[INFO] Compose: 실서비스 비밀은 docker-compose.aws.override.yml 에 두고, 배포 시 -f docker-compose.aws.yml -f docker-compose.aws.override.yml 로 기동합니다." -ForegroundColor Cyan
 Write-Host "[INFO] Additional commands:" -ForegroundColor Cyan
-Write-Host "  - Logs: ssh -i $KEY_FILE ${INSTANCE_USER}@${INSTANCE_DNS} 'cd $REMOTE_PATH && docker-compose -f docker-compose.aws.yml logs -f lotto-api'" -ForegroundColor Gray
+Write-Host "  - Logs: ssh -i $KEY_FILE ${INSTANCE_USER}@${INSTANCE_DNS} 'cd $REMOTE_PATH && docker-compose -f docker-compose.aws.yml -f docker-compose.aws.override.yml logs -f lotto-api'" -ForegroundColor Gray
 $countCmd = "docker exec lotto-postgres psql -U postgres -d lottoguide -c 'SELECT COUNT(1) FROM mission_templates;'"
 Write-Host "  - mission_templates data: ssh -i $KEY_FILE ${INSTANCE_USER}@${INSTANCE_DNS} `"$countCmd`"" -ForegroundColor Gray
