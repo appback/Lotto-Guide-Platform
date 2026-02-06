@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Tabs } from 'antd';
+import { Tabs, Divider, Space } from 'antd';
+import { Link } from 'react-router-dom';
 import { DeepGeneratePage } from './DeepGeneratePage';
 import { GeneratePage } from './GeneratePage';
 import { HistoryPage } from './HistoryPage';
@@ -38,6 +39,17 @@ export const MainPage: React.FC = () => {
           },
         ]}
       />
+
+      <Divider style={{ marginTop: 24 }} />
+
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <Space size="middle" wrap>
+          <Link to="/privacy">개인정보처리방침</Link>
+          <Link to="/terms">이용약관</Link>
+          <Link to="/disclaimer">면책/주의사항</Link>
+          <Link to="/about">소개/문의</Link>
+        </Space>
+      </div>
     </div>
   );
 };
